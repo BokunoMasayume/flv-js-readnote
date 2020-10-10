@@ -90,7 +90,7 @@ Video tags9VIDEODATAIf FrameType = 5, instead of a video payload, the message st
 |:----:|:----:|:----:|
 |objects| SCIPTDATAOBJECT[]|任意数量的SCRIPTDATAOBJECT结构|
 |end|UI24|总是9, SCRIPTDATAOBJECTEND|
----
+
 
 
 ### SCRIPTDATAOBJECT
@@ -98,14 +98,14 @@ Video tags9VIDEODATAIf FrameType = 5, instead of a video payload, the message st
 |:----:|:----:|:----:|
 |ObjectName|SCRIPTDATASTRING|对象的名字|
 |ObjectData|SCRIPTDATAVALUE|对象的数据|
----
+
 
 
 ### SCRIPTDATAOBJECTEND
 |field|type|comment|
 |:----:|:----:|:----:|
 |ObjectEndMarker2|UI24|9|
----
+
 
 
 
@@ -114,22 +114,22 @@ Video tags9VIDEODATAIf FrameType = 5, instead of a video payload, the message st
 |:----:|:----:|:----:|
 |StringLength|UI16|字符串长度(字节数)|
 |StringData|STRING|字符串数据|
----
+
 ### SCRIPTDATALONGSTRING
 |field|type|comment|
 |:----:|:----:|:----:|
 |StringLength|UI32|字符串长度(字节数)|
 |StringData|STRING|字符串数据|
----
+
 ### SCRIPTDATAVALUE
 
 |field|type|comment|
 |:----:|:----:|:----:|
 |Type|UI8|0 = 数字 <br>1 = 布尔<br>2 = 字符串<br>3 = 对象<br>4 = movieclip<br>5 = null<br>6 = undefined<br>7 = reference type<br>8 = ecma array type<br>10 = strict array type<br>11 = date type<br>12 = long string type|
 |ECMAArrayLength|if type = 8, UI32|ecma数组字段数|
-|ScriptDataValue|if type == 0 Double<br>if type == 1 UI8<br>if type == 2 SCRIPTDATASTRING<br>if type == 3 SCRIPTDATAOBJECT\[n\]<br>if type == 4 SCRIPTDATASTRING<br>if type == 7 UI16<br>if type == 8 SCRIPTDATAVARIABLE[]<br>if type == 10 SCRIPTDATAVARIABLE\[n\]<br>if type == 11 SCRIPTDATADATE<br>12 SCRIPTDATALONGSTRING|数据值|
+|ScriptDataValue|if type == 0 Double<br>if type == 1 UI8<br>if type == 2 SCRIPTDATASTRING<br>if type == 3 SCRIPTDATAOBJECT\[n\]<br>if type == 4 SCRIPTDATASTRING<br>if type == 7 UI16<br>if type == 8 SCRIPTDATAVARIABLE[]<br>if type == 10 SCRIPTDATAVARIABLE\[n\]<br>if type == 11 SCRIPTDATADATE<br>12 SCRIPTDATALONGSTRING<br>|数据值|
 |ScriptDataValueTerminator|if type == 3 SCRIPTDATAOBJECTEND<br>if type == 8 SCRIPTDATAVARIABLEEND|结束符|
----
+
 ### SCRIPTDATAVARIABLE
 |field|type|comment|
 |:----:|:----:|:----:|
