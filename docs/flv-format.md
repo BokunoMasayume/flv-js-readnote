@@ -33,6 +33,7 @@ flv使用大端字节序
 |PreviousTagSizeN|UI32|最后一个tag|
 
 ## flv tags
+
 |field|type|comment|
 |:----:|:----:|:----:|
 |TagType|UI8|tag的类型 8: 音频; 9: 视频; 18: 脚本数据; 其他: 保留|
@@ -47,6 +48,7 @@ flv使用大端字节序
 ## audio tags
 
 AUDIODATA
+
 |field|type|comment|
 |:----:|:----:|:----:|
 |SoundFormat|UB\[4\]<br>0 = linear PCM, 平台字节序<br>1 = ADPCM<br>2 = MP3<br>3 = linear PCM, 小端字节序<br>4 = Nellymoser 16-kHz mono<br>5 = Nellymoser 8-kHz mono<br>6 = Nellymoser<br>7 = G.711 A-law logarithmic PCM<br>8 = G.711 mu-law logarithmic PCM<br>9 = reserved <br>10 = AAC<br>11 = Speex<br>14 = MP3 8-Khz<br>15 = Device-specific sound|声音数据的格式<br>格式7,8,14,15为内部使用保留...?|
