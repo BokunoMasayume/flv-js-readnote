@@ -85,6 +85,58 @@ Video tags9VIDEODATAIf FrameType = 5, instead of a video payload, the message st
 ### AVCVIDEOPACKET
 ![](./assets/img/flv_avcvideopacket.png)
 
+
+#### AVCDecoderConfigurationRecord
+
+AVCDecoderConfigurationRecord 即 AVC SequenceHeader
+对于h.264/avc编码格式的flv文件, onMetaData是第一个tag, 之后的第二个tag就是AVCDecoderConfigurationRecord, 也是第一个videoTag, 在flv文件中一般也只出现一次.
+其中包含解码相关的重要pps和sps信息. 在给AVC解码器送数据流之前一定要把sps和pps信息送到, 且当解码器快进快退, 跳转的时候也要重新发送sps和pps信息
+
+|field|type|comment|
+|:----:|:----:|:----:|
+|configurationVersion|UI8|版本号, 1|
+|AVCProfileIndication|UI8|SPS[1]|
+|profile_compatibility|UI8|SPS[2]|
+|AVCLevelIndication|UI8|SPS[3]|
+|---|UB[6]|保留 111111|
+|lengthSizeMinusOne|UB[2]|NALUnitLength - 1, 一般为3|
+|---|UB[3]|保留111|
+|numOfSequenceParameterSets|UB[5]||
+|sps|spsSet[numOfSequenceParameterSets]|sps个数, 一般为1|
+|numOfPictureParameterSets|UB[8]| pps个数, 一般为1|
+|pps|ppsSet[numOfSequenceParameterSets]||
+
+##### spsSet
+
+|field|type|comment|
+|:----:|:----:|:----:|
+|sequenceParamterSetLength|UI16||
+|sequenceParameterSetNALUnit|UI8[sequenceParameterSetLength]||
+
+##### ppsSet
+
+|field|type|comment|
+|:----:|:----:|:----:|
+|pictureParameterSetLength|UI16||
+|pictureParamterSetNALUnit|UI8[pictureParameterSetLengths]||
+
+#### NALU结构
+
+nalu是H264中的数据单元
+nalu = start code + nalu header + nalu payload(rbsp)
+- start code : 1字节 000001B 或 00000001B
+- nalu header : 1字节 
+    - forbidden_zero_bit(1 bit) : 禁止位, 初始为0, 当网络发现nal单元有比特错误时设为1
+    - nal_ref_idc(2 bit) : nal重要性指示, 值越大, 该nal越重要, 解码器处理不过来时, 可以丢掉重要性为0的nalu
+    - nal_unit_type(5 bit) : nalu 类型
+        - 5 : idr
+        - 7 : sps
+        - 8 : pps
+        - ...
+
+#### SODB 和 RBSP
+
+sodb是最原始的编码数据rbsp, 长度不一定是8的倍数, 需要对齐, 在sodb的后面添加结尾比特1 + 0 * n, 以对齐.
 ## data tags
 
 ### SCRIPTDATA
@@ -183,3 +235,4 @@ Video tags9VIDEODATAIf FrameType = 5, instead of a video payload, the message st
 
 **onmetadata 示例**
 ![onmetadata 示例](./assets/img/flv_onmetadata.png)
+
