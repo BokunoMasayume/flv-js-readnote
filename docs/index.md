@@ -52,6 +52,7 @@ flv.js在io-controller.js的selectLoader方法显示的逻辑表示, 默认优�
 
 ## 其他
 
+- [带注释版flv.js源码](https://github.com/BokunoMasayume/flv.js/tree/note/src)
 - [flv格式](./flv-format.md)
 - [mre](./media-source-extension.md)
 - [flv.js文档](./flvdoc.md)
