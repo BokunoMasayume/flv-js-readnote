@@ -9,3 +9,9 @@
 [4] https://juejin.im/post/6844903910801408013
 
 [5] https://www.jianshu.com/p/e290dca02979
+
+[6] https://mp.weixin.qq.com/s/wjoEYoU7xdmHbH1gC_jzXg
+
+[7] https://mp.weixin.qq.com/s/yW8fJq-1JB5JInlB41X4xA
+
+[8] https://webplatform.github.io/docs/apis/media_source_extensions/MediaSource/

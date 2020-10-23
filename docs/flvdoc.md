@@ -1,2 +1,21 @@
+# 使用方式
+
+```html
+<script src='flv.min.js'></script>
+<video id='videoElement'></video>
+<script>
+    if(flvjs.isSupported()) {
+        var videoElement = document.getElementById('videoElement);
+        var flvPlayer = flvjs.createPlayer({
+            type: 'flv',
+            url: 'http://example.com/flv/video.flv'
+        });
+        flvPlayer.attachMediaElement(videoElement);
+        flvPlayer.load();
+        flvPlayer.play();
+    }
+</script>
+```
+
 # 体系结构
 ![](./assets/img/aflv_js_architecture.png)

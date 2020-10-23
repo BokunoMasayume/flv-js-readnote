@@ -15,7 +15,7 @@ flv.js 只当视频编码为h.264, 音频编码为AAC时有效, 这也是一般�
 
 ## 组织方式
 
-内个本体和controller是什么关系
+// TODO 结构图
 
 
 ## 媒体数据的流通路径
@@ -54,6 +54,11 @@ flv.js在io-controller.js的selectLoader方法显示的逻辑表示, 默认优�
 
 - [带注释版flv.js源码](https://github.com/BokunoMasayume/flv.js/tree/note/src)
 - [flv格式](./flv-format.md)
+- [mp4格式](./mp4-format.md)
 - [mre](./media-source-extension.md)
-- [flv.js文档](./flvdoc.md)
+- [flv.js使用文档](./flvdoc.md)
 - [杂项](./sketch.md)
+
+## [参考](./reference.md)
+
+
