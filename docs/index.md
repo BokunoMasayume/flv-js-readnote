@@ -50,6 +50,10 @@ FlvPlayer 和 MSEController 通过FlvPlayer调用MSEController 的appendMediaSeg
 
 flv.js在io-controller.js的selectLoader方法显示的逻辑表示, 默认优先的loader是WebSocketLoader 和 FetchStreamLoader
 
+## [解码](./flvjs_demux.md)
+
+## [编码](./flvjs_remux.md)
+
 ## 详细文档
 
 - [带注释版flv.js源码](https://github.com/BokunoMasayume/flv.js/tree/note/src)
