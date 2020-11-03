@@ -38,6 +38,66 @@ FlvPlayer 和 MSEController 通过FlvPlayer调用MSEController 的appendMediaSeg
 
 数据由MSEController最终送给MediaSource中, 在HTMLMediaElement中播放
 
+## 媒体数据处理流程
+
+IOLoader请求媒体数据,每拿到一块数据, 调用onDataArrival句柄,该句柄传来的数据经由IOController的onLoaderChunkArrival做一些缓存处理后交TransmuxingController的onInitChunkArrival句柄处理.
+
+在onInitChunkArrival中, 通过扫描数据头部, 如发现flv文件头, FLVDemuxer和MP4Remuxer被创建, 随后IOController移交给demuxer管理, 数据由原本的从iocontroller流向transmuxingcontroller变更为由iocontroller流向demuxer的parseChunks方法处理.另外transmuxingController还会给demuxer注入error, mediaInfo, metaDataArrival, scriptDataArrived事件处理句柄, 给remuxer注入initSegment, mediaSegment事件处理句柄; 并将remuxer的muxer方法注入demuxer的dataavailable句柄, ontrackMetadataReceived注入trackMetadata句柄, 使经由demuxer处理的数据流入remuxer.
+
+当数据通过demuxer的parseChunks方法流入demxuer后, demuxer根据每个flv tag的类型(audio, video, script)分发给相应的处理方法处理.
+
+- script data处理句柄: 最特殊的script data tag是flv文件的第一个tag, 它是[amf格式](./flv-format.md#SCRIPTDATA)的, 包含了音视频相关的元数据, 当接收到的script tag是这个时, demuxer调用onMetaDataArrived处理, 具体的处理方式经由transmuxingController的onMetaDataArrived和transmuxer的onMetaDataArruved最终触发FlvPlayer的METADATA_ARRIVED事件, flv.js中无flvPlayer该事件接收者, 基本就随风飘散了. 对所有的script data 处理后都会触发
+
+
+
+### flvPlayer初始化相关流程
+
+1. flvPlayer实例化
+    
+    - 传入媒体资源url
+    - 确定loadedmetadata seek, canplay, stalled, onvProgress事件句柄
+    - 实例上字段初始化
+
+2. 连接媒体element
+    - 用1中句柄监听媒体element上的相应事件
+    - 初始化MSEController实例,并监听update_end, buffer_full, source_open事件, 并调用其**attachMediaElement**方法将该实例连接到媒体元素
+
+3. 初始化加载数据流程
+    - 初始化Transmuxer实例,并监听其上init_segment, media_segment, loading_complete, recovered_early_eof, io_error, demux_error, media_info, metadata_arrived, scriptdata_arrived, statistics_info, recommend_seekpoint事件, 并调用其**open**方法
+
+4. 开始播放
+    调用媒体元素**play**方法
+
+### MSEController初始化相关流程
+
+1. 确定sourceOpen, sourceEnded, sourceClose, sourceBufferError, sourceBufferUpdateEnd事件的句柄
+2. 连接媒体元素, 创建MeidaSource实例, 并用1中句柄监听其上相应事件, 最后将ms附在媒体元素src属性上.
+
+### Transmuser初始化相关流程
+
+1. 创建TransmuxingController实例, 并监听其上io_error, demux_error, init_segment, media_segment, loading_complete, recovered_early_eof, media_info, metadata_arrived, scriptdata_arrived, statistics_info, recomment_seekpoint事件
+2. 调用transmuxingcontroller实例的**start**方法
+
+### TransmuxingController初始化相关流程
+
+1. 媒体元素上创建segments:[{timestampBase, cors, withCredentials, duration, filesize, url}]
+2. start: 
+    - 调用 _loadSegment(segment)
+        -   创建IOController, 为其注入error, seeked, complete, redirect, recoveredEarlyEof事件句柄
+        - 注入dataarrival事件句柄
+        - 调用其**open**方法
+
+### IOController初始化相关流程
+
+1. 选择seekHandler,并创建其实例
+2. 选择loader
+3. 创建loader实例, 注入其contentLengthKnwon, URLRedirect, dataArrival, complete, error事件句柄
+4. 调用open方法, , 其中调用loader的open方法
+
+### Loader初始化相关流程
+
+请求媒体数据
+
 ## io
 
 ### 可选loader
