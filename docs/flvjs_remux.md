@@ -6,7 +6,7 @@
 segment = {
     type: 'audio'|'video',
     data: moof+mdat
-    sampleCount:,
-    info
+    sampleCount:采样数目,
+    info: 包含着数据的pts, dts信息
 }
 ```

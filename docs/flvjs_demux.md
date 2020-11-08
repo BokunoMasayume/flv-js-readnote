@@ -56,3 +56,23 @@ nalUnit = {
 }
 ```
 
+## _audioMetadata 和 _videoMetadata
+
+### _audioMetadata对象字段
+```js
+{
+    type: 'audio',
+    id: 2,
+    timescale: 1000 ,// 正常速率, 1000
+    duration: 时长,
+    audioSampleRate: 采样率,
+    channelCount: 声道数, mono or stereo
+    codec: misc.codec,
+    originalCodec: misc.originalCodec,
+    config: misc.config, // aac
+    refSampleDuration,
+    
+
+}
+
+```

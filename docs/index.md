@@ -42,11 +42,23 @@ FlvPlayer 和 MSEController 通过FlvPlayer调用MSEController 的appendMediaSeg
 
 IOLoader请求媒体数据,每拿到一块数据, 调用onDataArrival句柄,该句柄传来的数据经由IOController的onLoaderChunkArrival做一些缓存处理后交TransmuxingController的onInitChunkArrival句柄处理.
 
-在onInitChunkArrival中, 通过扫描数据头部, 如发现flv文件头, FLVDemuxer和MP4Remuxer被创建, 随后IOController移交给demuxer管理, 数据由原本的从iocontroller流向transmuxingcontroller变更为由iocontroller流向demuxer的parseChunks方法处理.另外transmuxingController还会给demuxer注入error, mediaInfo, metaDataArrival, scriptDataArrived事件处理句柄, 给remuxer注入initSegment, mediaSegment事件处理句柄; 并将remuxer的muxer方法注入demuxer的dataavailable句柄, ontrackMetadataReceived注入trackMetadata句柄, 使经由demuxer处理的数据流入remuxer.
+在onInitChunkArrival中, 通过扫描数据头部, 如发现flv文件头, **FLVDemuxer**和**MP4Remuxer**被创建, 随后IOController移交给demuxer管理, 数据由原本的从iocontroller流向transmuxingcontroller变更为由iocontroller流向demuxer的parseChunks方法处理.另外transmuxingController还会给demuxer注入error, mediaInfo, metaDataArrival, scriptDataArrived事件处理句柄, 给remuxer注入initSegment, mediaSegment事件处理句柄; 并将remuxer的muxer方法注入demuxer的dataavailable句柄, ontrackMetadataReceived注入trackMetadata句柄, 使经由demuxer处理的数据流入remuxer.
 
-当数据通过demuxer的parseChunks方法流入demxuer后, demuxer根据每个flv tag的类型(audio, video, script)分发给相应的处理方法处理.
+当数据通过demuxer的parseChunks方法流入demxuer后, parseChunks将数据按照flv tag分割, 并解析每个tag的header, 并根据header的信息确认每个flv tag的类型(audio, video, script)并将该tag的body部分分发给相应的处理方法处理.
 
-- script data处理句柄: 最特殊的script data tag是flv文件的第一个tag, 它是[amf格式](./flv-format.md#SCRIPTDATA)的, 包含了音视频相关的元数据, 当接收到的script tag是这个时, demuxer调用onMetaDataArrived处理, 具体的处理方式经由transmuxingController的onMetaDataArrived和transmuxer的onMetaDataArruved最终触发FlvPlayer的METADATA_ARRIVED事件, flv.js中无flvPlayer该事件接收者, 基本就随风飘散了. 对所有的script data 处理后都会触发
+- script data处理句柄: 最特殊的script data tag是flv文件的第一个tag, 它是[amf格式](./flv-format.md#SCRIPTDATA)的, 包含了音视频相关的元数据, 当接收到的script tag是这个时, demuxer调用onMetaDataArrived处理, 具体的处理方式经由transmuxingController的onMetaDataArrived和transmuxer的onMetaDataArruved最终触发FlvPlayer的METADATA_ARRIVED事件, flv.js中无flvPlayer该事件接收者, 基本就随风飘散了. 对所有的script data 处理后都会调用onScriptDataArrived方法处理,该句柄经由transmuxingController的onScriptDataArrived方法, transmuer的onScriptDataArrived方法, 最终触发flvPlayer的SCRIPTDATA_ARRIVED事件.
+
+- audio data处理句柄: audio tag的body部分的结构为AUDIODATA, 在该结构的头部(第一个字节)可以得到音频的采样率, 声道数和编码方式(aac或mp3), 然后根据编码方式, 送给aac处理句柄和mp3处理句柄, 抽取出音频数据部分和元数据信息, 并将抽取到的音频数据推入_audioTrack队列中等待被mp4编码器消费,将元数据用onTrackMetadata送给remuxer的onTrackMetadataReceived方法处理, 之后经由onInitSegment方法送给transmuxing-controller的onRemuxerInitSegmentArrival方法, 最后在mse-controller的appendInitSegment方法里, 为media source 附加相应mime type的sourceBuffer. 
+
+- video data处理句柄: video tag的body部分的结构为VIDEODATA, 其头部(第一个字节)描述了帧类型和编码方式, 这里只支持avc编码, 当确定该tag为avc编码的视频数据后, 会根据数据部分的AVCVIDEOPACKET结构, 从中抽取出以nalu为单位的视频数据和元数据信息, 并将抽取出的视频数据推入_videoTrack队列中等待被mp4编码器消费, 将元数据用onTrackMetadata送给remuxer的onTrackMetadataReceived方法处理, 之后经由onInitSegment方法送给transmuxing-controller的onRemuxerInitSegmentArrival方法, 最后在mse-controller的appendInitSegment方法里, 为media source 附加相应mime type的sourceBuffer. 
+
+当该tag的body部分被相应的处理方法处理完成后, parseChunks会调用_onDataAvailable句柄, 将_audioTrack和_videoTrack送出, 该句柄由remuxer的remux方法提供, 在这里, 音视频的轨道分别被_remuxVideo和_remuxAudio方法消费. 在这里, 首先会矫正各个sample的dts, 进行音视频同步,  并计算它们的duration, 然后把它们封装成一整个mdat box, 并在前面加上一个moof box, 通过onMediaSegment方法, 触发MEDIA_SEGMENT事件, 推送给mse使用. 
+
+mse-controller 使用appendMediaSegment方法处理接收到的fmp4格式的数据, 在该方法内部将接收到的数据放在pendingSegments对列中等到消费, 并调用_doApppendSegments方法, 在这里将数据调用source buffer上的appendBuffer装入相应的buffer里, 然后就会被media source连接的video元素播放了.
+
+
+
+
 
 
 
@@ -60,7 +72,7 @@ IOLoader请求媒体数据,每拿到一块数据, 调用onDataArrival句柄,该�
 
 2. 连接媒体element
     - 用1中句柄监听媒体element上的相应事件
-    - 初始化MSEController实例,并监听update_end, buffer_full, source_open事件, 并调用其**attachMediaElement**方法将该实例连接到媒体元素
+    - 初始化MSEController实例,并监听update_end, buffer_full, source_open事件, 并调用其**attachMediaElement**方法将该实例创建的media source连接到媒体元素,
 
 3. 初始化加载数据流程
     - 初始化Transmuxer实例,并监听其上init_segment, media_segment, loading_complete, recovered_early_eof, io_error, demux_error, media_info, metadata_arrived, scriptdata_arrived, statistics_info, recommend_seekpoint事件, 并调用其**open**方法
@@ -113,6 +125,8 @@ flv.js在io-controller.js的selectLoader方法显示的逻辑表示, 默认优�
 ## [解码](./flvjs_demux.md)
 
 ## [编码](./flvjs_remux.md)
+
+## seek实现(./seek.md)
 
 ## 详细文档
 
